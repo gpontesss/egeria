@@ -1,0 +1,76 @@
+{{/* The entry's photographs as a carousel at the top of the page: a stage
+     that swipes, and a track of thumbnails below it to preview, navigate and
+     select.
+
+     The stage is a scroll-snap row, not a JS-positioned slider -- so a touch
+     swipe works natively, the scrollbar is the state, and carousel.js only
+     has to read and nudge it. Each slide is a `.gallery-item` button
+     carrying the same data attributes the lightbox reads, so clicking a
+     slide opens it large with no extra wiring.
+
+     Attribution travels with the picture: the credit under the stage updates
+     per slide, and the full list is in photo-credits.html lower down. */}}
+{{ $photos := partial "photos-for.html" . }}
+{{ with $photos }}
+  {{ $page := $ }}
+  {{ $lead := partial "photo-lead.html" $page }}
+  {{/* The lead goes first, so the page still opens on the picture that best
+       represents the place rather than on whatever ranked highest. */}}
+  {{ $ordered := slice $lead }}
+  {{ range . }}{{ if ne .file $lead.file }}{{ $ordered = $ordered | append . }}{{ end }}{{ end }}
+
+  <figure class="carousel" data-carousel>
+    <div class="carousel-stage">
+      <ul class="carousel-slides">
+        {{ range $i, $p := $ordered }}
+          {{ $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName $p.file }}
+          {{ with resources.Get $path }}
+            {{ $big := .Fill "1400x760 webp q80 Center" }}
+            {{ $full := .Resize "1400x webp q82" }}
+            <li class="carousel-slide">
+              <button type="button" class="gallery-item"
+                      data-full="{{ $full.RelPermalink }}"
+                      data-caption="{{ $p.caption }}"
+                      data-author="{{ $p.author }}"
+                      data-licence="{{ $p.licence }}"
+                      data-licence-url="{{ $p.licenceUrl }}"
+                      data-source="{{ $p.source }}"
+                      aria-label="Enlarge photograph {{ add $i 1 }} of {{ len $ordered }}">
+                <img src="{{ $big.RelPermalink }}" width="{{ $big.Width }}" height="{{ $big.Height }}"
+                     alt="{{ with $p.caption }}{{ . }}{{ else }}{{ $page.Title }}{{ end }}"
+                     loading="{{ cond (eq $i 0) "eager" "lazy" }}" decoding="async"
+                     {{ if eq $i 0 }}fetchpriority="high"{{ end }}>
+              </button>
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
+
+      {{ if gt (len $ordered) 1 }}
+        <button type="button" class="carousel-arrow carousel-prev" aria-label="Previous photograph">&lsaquo;</button>
+        <button type="button" class="carousel-arrow carousel-next" aria-label="Next photograph">&rsaquo;</button>
+        <span class="carousel-counter" aria-hidden="true"></span>
+      {{ end }}
+    </div>
+
+    <figcaption class="carousel-caption" aria-live="polite"></figcaption>
+
+    {{ if gt (len $ordered) 1 }}
+      <ul class="carousel-track" aria-label="Choose a photograph">
+        {{ range $i, $p := $ordered }}
+          {{ $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName $p.file }}
+          {{ with resources.Get $path }}
+            {{ $t := .Fill "160x120 webp q75 Center" }}
+            <li>
+              <button type="button" class="carousel-dot" data-index="{{ $i }}"
+                      aria-label="Photograph {{ add $i 1 }}">
+                <img src="{{ $t.RelPermalink }}" width="{{ $t.Width }}" height="{{ $t.Height }}"
+                     alt="" loading="lazy" decoding="async">
+              </button>
+            </li>
+          {{ end }}
+        {{ end }}
+      </ul>
+    {{ end }}
+  </figure>
+{{ end }}

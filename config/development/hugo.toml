@@ -1,0 +1,10 @@
+# Overrides for `hugo server`, which runs in the "development" environment by
+# default. Only the baseURL differs: everything else is inherited from
+# config/_default/hugo.toml.
+#
+# Without this the published path (/egeria/) leaks into local preview -- the
+# server answers at / but every stylesheet, script and link points one level
+# deeper, so the site comes up as unstyled markup. Keeping it here rather
+# than as a --baseURL flag means plain `hugo server` works too, not only
+# `make serve`.
+baseURL = "http://localhost:1313/"

@@ -504,3 +504,24 @@ place. An entry can override it with `lead: N` in front matter.
 
 The fetcher's own archival filter was widened to match: it only caught
 1800–1959, which is why a file dated 1727 ranked first.
+
+## 2026-10-04 — The published path must not leak into local preview
+
+Setting a project-site baseURL broke running the site locally: the dev
+server answers at `/`, but every link and asset carried `/egeria/`, so the
+site came up as unstyled markup with 404s throughout.
+
+The first fix was a `--baseURL` flag on `make serve`, which was wrong
+because it only fixed one way of starting the server. Plain `hugo server`
+— what anyone would type — stayed broken.
+
+**Config is now split by environment.** `config/_default/hugo.toml` holds
+everything including the published baseURL; `config/development/hugo.toml`
+overrides the baseURL alone. `hugo server` runs in the *development*
+environment by default and `hugo` builds *production*, so both work with no
+flags and neither can be got wrong by forgetting one.
+
+Added `make preview` for the remaining case — checking the actual built
+output locally — which rebuilds against a root baseURL first, because the
+production build hardcodes `/egeria/` into every link and would otherwise
+404 on every page when served from localhost.

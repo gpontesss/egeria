@@ -11,13 +11,21 @@ all: site
 site:
 	@hugo --minify
 
-# baseURL carries a path (a GitHub Pages *project* site), and the dev server
-# would otherwise serve the pages at / while their assets point at /egeria/,
-# which renders the site completely unstyled. --baseURL pins the preview to
-# the root so local and published both work.
+# No --baseURL flag needed: `hugo server` runs in the "development"
+# environment, and config/development/hugo.toml pins the preview to the
+# localhost root. Plain `hugo server` therefore works too.
 .PHONY: serve
 serve:
-	@hugo server --buildDrafts --navigateToChanged --baseURL http://localhost:1313/
+	@hugo server --buildDrafts --navigateToChanged
+
+# Serve the BUILT site locally. The production build hardcodes /egeria/ into
+# every link, so it is rebuilt here against a root baseURL -- otherwise every
+# page 404s when served from localhost.
+.PHONY: preview
+preview:
+	@hugo --minify --baseURL http://localhost:8080/ --destination out/preview
+	@echo "serving the built site at http://localhost:8080/ (ctrl-c to stop)"
+	@python3 -m http.server 8080 --directory out/preview
 
 .PHONY: check
 check:
@@ -32,4 +40,4 @@ new:
 
 .PHONY: clean
 clean:
-	@rm -rf $(SITE_DIR) ./resources
+	@rm -rf $(SITE_DIR) ./out/preview ./resources

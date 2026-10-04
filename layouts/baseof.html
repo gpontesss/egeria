@@ -17,9 +17,11 @@
     <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
   {{ end }}
   {{ if gt (len (partial "photos-for.html" .)) 0 }}
-    {{ with resources.Get "js/gallery.js" }}
-      {{ $js := . | minify | fingerprint }}
-      <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+    {{ range slice "js/carousel.js" "js/gallery.js" }}
+      {{ with resources.Get . }}
+        {{ $js := . | minify | fingerprint }}
+        <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+      {{ end }}
     {{ end }}
   {{ end }}
   {{ if $needsMap }}

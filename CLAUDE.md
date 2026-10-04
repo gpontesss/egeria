@@ -43,6 +43,9 @@ the workflow cannot do for itself.
 ## Architecture
 
 ```
+config/
+  _default/hugo.toml             ← all config; production baseURL
+  development/hugo.toml          ← localhost baseURL for `hugo server`
 content/
   _index.md                      ← home page prose
   athens/ aegina/ patmos/ constantinople/
@@ -246,9 +249,17 @@ Published at **https://gpontesss.github.io/egeria/** — a GitHub Pages
   relative path, or use `.RelPermalink` / `site.Home.RelPermalink`.
 - Markdown content may write root-absolute links; `layouts/_markup/render-link.html`
   rewrites them (stripping the slash first, for the reason above).
-- **`make serve` must pass `--baseURL http://localhost:1313/`** or the dev
-  server serves pages at `/` with assets pointing at `/egeria/`, and the site
-  renders unstyled.
+- **The baseURL is per-environment, and must stay that way.**
+  `config/_default/hugo.toml` holds the published URL;
+  `config/development/hugo.toml` overrides it with `http://localhost:1313/`.
+  `hugo server` runs in *development* automatically, so plain `hugo server`
+  works with no flags; `hugo` builds *production*. Do not move the published
+  baseURL back into the default config alone — the dev server would then
+  serve pages at `/` with assets pointing at `/egeria/`, and the site renders
+  as unstyled markup.
+- `make preview` serves the built output at `localhost:8080`, rebuilding it
+  against a root baseURL first, since the production build hardcodes
+  `/egeria/` into every link.
 
 After changing anything about linking, audit with:
 `grep -rEo '(href|src)=/(?!egeria/)[^ >]*' out/site` — it should be empty.

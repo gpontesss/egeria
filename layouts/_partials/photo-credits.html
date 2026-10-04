@@ -1,0 +1,22 @@
+{{/* The full credit list. Most of these photographs are CC BY or CC BY-SA,
+     which REQUIRE the author and the licence to be shown wherever the image
+     is used. The carousel shows the current slide's credit as you go; this
+     is the complete record with a link to each source file. Do not remove
+     either. */}}
+{{ $photos := partial "photos-for.html" . }}
+{{ with $photos }}
+  <details class="credits">
+    <summary>Photograph credits and licences</summary>
+    <ol>
+      {{ range . }}
+        <li>
+          {{ with .source }}<a href="{{ . }}">{{ end }}{{ .commons | replaceRE "^File:" "" }}{{ with .source }}</a>{{ end }}
+          — {{ .author | default "Unknown" }},
+          {{ with .licenceUrl }}<a href="{{ . }}">{{ end }}{{ .licence }}{{ with .licenceUrl }}</a>{{ end }}.
+          <span class="credit-found">Matched: {{ .found }}.</span>
+        </li>
+      {{ end }}
+    </ol>
+    <p>Photographs from <a href="https://commons.wikimedia.org/">Wikimedia Commons</a>, fetched by <code>tools/fetch_photos.py</code>. Images matched by proximity alone have not been confirmed to show this place.</p>
+  </details>
+{{ end }}

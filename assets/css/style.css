@@ -503,8 +503,12 @@ body.menu-open {
 
   .portrait {
     order: -1;
-    max-width: min(16rem, 60%);
-    margin: 0 0 1.5rem;
+    /* Full bleed of the reading column on a phone. Capped at 30rem so a
+       square portrait does not become an absurdly tall block on a tablet,
+       where the column is wide but the grid has not kicked in yet. */
+    width: 100%;
+    max-width: 30rem;
+    margin: 0 auto 1.5rem;
   }
 }
 
@@ -851,25 +855,166 @@ body.menu-open {
   font-style: italic;
 }
 
-/* The hero runs the full width of the article and is the first thing on the
-   page. Taller in proportion on a phone, where a 2:1 strip is too thin to
-   read as a picture of anywhere. */
-.entry-hero {
-  margin: 0 0 1.2rem;
+/* ---------- entry carousel ---------- */
+
+.carousel {
+  margin: 0 0 1.4rem;
+}
+
+.carousel-stage {
+  position: relative;
+}
+
+/* A scroll-snap row: the browser does the swiping and the snapping, and the
+   scroll position is the state. Without JS this is still a usable scrollable
+   row of photographs, which is why the slider is built this way. */
+.carousel-slides {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border: 1px solid var(--border);
   line-height: 0;
 }
 
-.entry-hero img {
+.carousel-slides::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.carousel-slide .gallery-item {
+  border: none;
+  width: 100%;
+  display: block;
+  padding: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.carousel-slide img {
+  display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
-  border: 1px solid var(--border);
 }
 
 @media (max-width: 40rem) {
-  .entry-hero img {
-    aspect-ratio: 3 / 2;
+  /* A 16:9 strip is too thin to read as a picture of anywhere on a phone. */
+  .carousel-slide img {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2rem;
+  height: 2.6rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.88;
+}
+
+.carousel-arrow:hover {
+  background: var(--text);
+  color: var(--bg);
+  opacity: 1;
+}
+
+.carousel-prev { left: 0.5rem; }
+.carousel-next { right: 0.5rem; }
+
+.carousel-counter {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.1rem 0.45rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.carousel-caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.78em;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.carousel-caption a {
+  color: inherit;
+}
+
+.carousel-text,
+.carousel-credit {
+  display: block;
+}
+
+.carousel-credit {
+  opacity: 0.85;
+}
+
+/* The track: thumbnails to preview, navigate and select. Scrolls on its own
+   axis so a long set does not stretch the page. */
+.carousel-track {
+  display: flex;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0 0 0.3rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.carousel-dot {
+  display: block;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  opacity: 0.55;
+}
+
+.carousel-dot img {
+  display: block;
+  width: 4.6rem;
+  height: 3.45rem;
+  object-fit: cover;
+}
+
+.carousel-dot:hover,
+.carousel-dot:focus-visible {
+  opacity: 1;
+  border-color: var(--text);
+}
+
+.carousel-dot.is-current {
+  opacity: 1;
+  border-color: var(--text);
+  border-width: 2px;
+}
+
+@media (max-width: 40rem) {
+  .carousel-dot img {
+    width: 3.6rem;
+    height: 2.7rem;
   }
 }
 
@@ -1051,51 +1196,8 @@ body.menu-open {
   border-color: var(--text);
 }
 
-.gallery-wrap {
-  margin-top: 2.5rem;
-}
-
-.gallery-heading {
-  font-size: 1.2em;
-  font-weight: 700;
-  margin-bottom: 0.6em;
-}
-
-.gallery {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-  gap: 0.6rem;
-}
-
-.gallery-item {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 1px solid var(--border-soft);
-  background: none;
-  cursor: zoom-in;
-  line-height: 0;
-}
-
-.gallery-item:hover,
-.gallery-item:focus-visible {
-  border-color: var(--text);
-  outline: none;
-}
-
-.gallery-item img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  display: block;
-}
-
 .credits {
-  margin-top: 1rem;
+  margin-top: 2rem;
   font-size: 0.78em;
   color: var(--text-muted);
 }

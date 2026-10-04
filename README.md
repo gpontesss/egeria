@@ -88,10 +88,16 @@ priest, and nothing here attempts an answer.
 
 ```sh
 make serve    # live-reloading preview at localhost:1313
-make site     # build to out/site/
+make preview  # serve the BUILT site at localhost:8080
+make site     # build to out/site/ for publishing
 make check    # build with path warnings fatal
 make clean
 ```
+
+`hugo server` on its own works too: it runs in Hugo's *development*
+environment, where `config/development/hugo.toml` pins the baseURL to
+localhost. The published path (`/egeria/`) only applies to production
+builds, so local and deployed both work without flags.
 
 Needs [Hugo](https://gohugo.io/) extended — `brew install hugo`. Unlike the
 sibling *materia-medica* project, which is a book that also generates a
