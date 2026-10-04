@@ -8,11 +8,13 @@
     </svg>
   </button>
 
-  <a class="site-title" href="{{ "/" | relURL }}">
-    <span>{{ .Site.Title }}</span>
+  {{/* site.Home.RelPermalink, not `"/" | relURL`: the latter returns a bare
+       "/" and drops the project path on a GitHub Pages project site. */}}
+  <a class="site-title" href="{{ site.Home.RelPermalink }}">
     {{/* Decorative here: the title beside it already names the site, so the
          mark takes empty alt rather than repeating it to a screen reader. */}}
     {{ partial "portrait.html" (dict "width" 48 "class" "site-mark" "alt" "" "loading" "eager") }}
+    <span>{{ .Site.Title }}</span>
   </a>
 
   <nav class="site-nav" aria-label="Indexes">

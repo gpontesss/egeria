@@ -1,0 +1,19 @@
+{{/* The entry's first photograph, full width at the top of the page, so what
+     the place looks like is the first thing seen rather than something found
+     by scrolling. Renders nothing when the entry has no photographs, and the
+     page falls back to opening on its title.
+
+     The same photograph appears again as the gallery's first frame; its
+     credit is carried there, so this one is marked decorative. */}}
+{{ $first := partial "photo-lead.html" . }}
+{{ with $first }}
+  {{ $path := printf "photos/%s/%s/%s" $.Section $.File.ContentBaseName .file }}
+  {{ with resources.Get $path }}
+    {{ $hero := .Fill "1400x700 webp q80 Center" }}
+    <figure class="entry-hero">
+      <img src="{{ $hero.RelPermalink }}" width="{{ $hero.Width }}" height="{{ $hero.Height }}"
+           alt="{{ with $first.caption }}{{ . }}{{ else }}{{ $.Title }}{{ end }}"
+           loading="eager" decoding="async" fetchpriority="high">
+    </figure>
+  {{ end }}
+{{ end }}

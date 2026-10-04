@@ -5,6 +5,7 @@
   {{ $hasToc := gt (len .Fragments.Identifiers) 1 }}
 
   <article class="entry">
+    {{ partial "photo-hero.html" . }}
     <h1>{{ .Title }}</h1>
     {{ with .Params.native }}<p class="entry-native">{{ . }}</p>{{ end }}
     {{ with .Params.summary }}<p class="entry-summary">{{ . }}</p>{{ end }}
@@ -31,7 +32,7 @@
     {{ partial "gallery.html" . }}
 
     {{ with .Params.saints }}
-      <p class="entry-footer">Saints: {{ range $i, $s := . }}{{ if $i }}, {{ end }}<a href="{{ (printf "/saints/%s/" (urlize $s)) | relURL }}">{{ $s }}</a>{{ end }}</p>
+      <p class="entry-footer">Saints: {{ range $i, $s := . }}{{ if $i }}, {{ end }}<a href="{{ (printf "saints/%s/" (urlize $s)) | relURL }}">{{ $s }}</a>{{ end }}</p>
     {{ end }}
 
     <nav class="pager entry-footer">

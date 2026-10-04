@@ -3,11 +3,10 @@
      every caller degrades to the text-only layout it had before.
 
      dict keys: page, width (px), class, lazy */}}
-{{ $photos := partial "photos-for.html" .page }}
-{{ with $photos }}
-  {{ $first := index . 0 }}
+{{ $first := partial "photo-lead.html" .page }}
+{{ with $first }}
   {{ $w := $.width | default 96 }}
-  {{ $path := printf "photos/%s/%s/%s" $.page.Section $.page.File.ContentBaseName $first.file }}
+  {{ $path := printf "photos/%s/%s/%s" $.page.Section $.page.File.ContentBaseName .file }}
   {{ with resources.Get $path }}
     {{ $t := .Fill (printf "%dx%d webp q78 Center" $w $w) }}
     <img class="{{ $.class }}" src="{{ $t.RelPermalink }}" width="{{ $w }}" height="{{ $w }}"

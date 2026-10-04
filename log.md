@@ -440,3 +440,67 @@ Three things that layout needed:
 
 `min-width: 0` on the body is what lets a long place name wrap instead of
 widening the flex row past the popup's maximum.
+
+## 2026-10-04 — Published URL, and the relURL leading-slash trap
+
+`baseURL = "https://gpontesss.github.io/egeria/"` — a GitHub Pages *project*
+site, so every internal link has to carry the `/egeria/` path segment.
+
+Setting it exposed two links that did not, and the cause is a trap worth
+knowing: **`relURL` is a no-op on input that already begins with a slash.**
+`"saints/" | relURL` gives `/egeria/saints/`; `"/saints/" | relURL` gives
+`/saints/`. The second looks more correct and is silently wrong.
+
+Three fixes:
+
+- `layouts/page.html` built its saints links from `printf "/saints/%s/"`.
+  Slash dropped.
+- The site title used `{{ "/" | relURL }}`, which returns a bare `/`. Now
+  `site.Home.RelPermalink`.
+- Markdown content can write `[Visiting](/visiting/)` and should keep
+  working, so `layouts/_markup/render-link.html` rewrites root-absolute
+  destinations — stripping the leading slash *before* handing them to
+  relURL, or the hook would have been a no-op too.
+
+A whole-site audit for `href=/` or `src=/` not followed by `egeria/` now
+comes back empty.
+
+**`make serve` pins `--baseURL http://localhost:1313/`.** Without it the dev
+server serves pages at `/` while their assets point at `/egeria/`, and the
+site renders completely unstyled — which is exactly how it first appeared.
+
+## 2026-10-04 — Mobile pass
+
+**The frontispiece was stranded at the bottom of the intro.** It was floated
+to the right below 60rem, but a float only wraps content that comes *after*
+it in the flow, and the portrait is last in the DOM — so there was nothing
+to wrap and it dropped to the bottom with a column of blank space beside it.
+Replaced with a flex column and `order: -1`, which puts the picture above
+the text visually while leaving the prose first in the document.
+
+**The map drew over the sticky header.** Leaflet assigns its panes z-index
+400–700 and its controls 1000, in the *root* stacking context, so they beat
+the header's 60 outright. Raising the header would have been a running
+battle; instead `.map` gets `position: relative; z-index: 0`, which makes it
+its own stacking context and confines every Leaflet number inside it.
+
+**The header mark moved to the left of the wordmark.**
+
+## 2026-10-04 — A lead photograph, and why it is not the first one
+
+Entries now open with a hero image, so what a place looks like is the first
+thing on the page rather than something found by scrolling.
+
+The lead is **not** `photos[0]`. The fetcher ranks by match confidence, and
+an old print of a church often matches its name better than a modern
+photograph does: the Phanar's best-scoring file is a 1727 engraving of the
+interior, which is a poor answer to "what does this place look like".
+`photo-lead.html` skips anything whose Commons title looks like a print or
+carries an early date, and takes the first real photograph instead.
+
+It is one partial shared by the hero, the listing thumbnails and the map
+popups, so those three can never disagree about which picture stands for a
+place. An entry can override it with `lead: N` in front matter.
+
+The fetcher's own archival filter was widened to match: it only caught
+1800–1959, which is why a file dated 1727 ranked first.

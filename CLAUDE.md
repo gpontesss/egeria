@@ -236,6 +236,23 @@ It is also the only colour on the site — a painted panel, the way a
 frontispiece is in a book. That is not licence to introduce accent colour
 into the interface; see Styling.
 
+## URLs
+
+Published at **https://gpontesss.github.io/egeria/** — a GitHub Pages
+*project* site, so every internal link must carry the `/egeria/` path.
+
+- **`relURL` is a no-op on input that starts with `/`.** `"saints/" | relURL`
+  → `/egeria/saints/`; `"/saints/" | relURL` → `/saints/`. Always pass a
+  relative path, or use `.RelPermalink` / `site.Home.RelPermalink`.
+- Markdown content may write root-absolute links; `layouts/_markup/render-link.html`
+  rewrites them (stripping the slash first, for the reason above).
+- **`make serve` must pass `--baseURL http://localhost:1313/`** or the dev
+  server serves pages at `/` with assets pointing at `/egeria/`, and the site
+  renders unstyled.
+
+After changing anything about linking, audit with:
+`grep -rEo '(href|src)=/(?!egeria/)[^ >]*' out/site` — it should be empty.
+
 ## Photographs
 
 Every place that has them shows a gallery on its entry page, a thumbnail in
@@ -254,6 +271,15 @@ Files land in `assets/photos/<section>/<slug>/`, metadata in
 `data/photos/<section>/<slug>.yaml`. Both are committed; Hugo generates every
 derivative at build time, so the site is self-contained and CI needs no
 network.
+
+### The lead photograph is not the first one
+
+`photo-lead.html` picks the picture that stands for a place — the entry
+hero, the listing thumbnail, the map popup — and all three use that one
+partial so they cannot disagree. It skips files whose Commons title looks
+like a print or carries an early date, because an old engraving often
+matches a church's name better than a modern photograph does and the fetcher
+ranks by match confidence. `lead: N` in front matter overrides it.
 
 ### Attribution is not optional
 

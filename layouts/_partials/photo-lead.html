@@ -1,0 +1,30 @@
+{{/* The photograph that stands for a place: the entry's hero, its thumbnail
+     in listings, and the picture in its map popup. One definition, so those
+     three never disagree.
+
+     It is NOT simply the first photograph. The fetcher ranks by match
+     confidence, and an old engraving of a church often matches its name
+     better than a modern photograph of it does -- the Phanar's best-scoring
+     file is a 1727 print. The lead skips anything whose Commons title looks
+     like a print or an early dated image and takes the first real
+     photograph, falling back to the first file if they all look archival.
+
+     An entry can override this with `lead: N` in its front matter (1-based),
+     which wins outright. */}}
+{{ $photos := partial "photos-for.html" . }}
+{{ $lead := "" }}
+{{ with $photos }}
+  {{ $lead = index . 0 }}
+  {{ $archival := `(?i)\b1[5-8][0-9]{2}\b|\b19[0-4][0-9]\b|engraving|gravure|lithograph|etching|\bprint\b|drawing|postcard|photochrom` }}
+  {{ range . }}
+    {{ if not (findRE $archival .commons) }}
+      {{ $lead = . }}
+      {{ break }}
+    {{ end }}
+  {{ end }}
+  {{ with $.Params.lead }}
+    {{ $i := sub (int .) 1 }}
+    {{ if and (ge $i 0) (lt $i (len $photos)) }}{{ $lead = index $photos $i }}{{ end }}
+  {{ end }}
+{{ end }}
+{{ return $lead }}

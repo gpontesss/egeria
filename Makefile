@@ -11,9 +11,13 @@ all: site
 site:
 	@hugo --minify
 
+# baseURL carries a path (a GitHub Pages *project* site), and the dev server
+# would otherwise serve the pages at / while their assets point at /egeria/,
+# which renders the site completely unstyled. --baseURL pins the preview to
+# the root so local and published both work.
 .PHONY: serve
 serve:
-	@hugo server --buildDrafts --navigateToChanged
+	@hugo server --buildDrafts --navigateToChanged --baseURL http://localhost:1313/
 
 .PHONY: check
 check:

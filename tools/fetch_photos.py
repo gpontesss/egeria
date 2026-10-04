@@ -62,7 +62,7 @@ TITLE_BONUS = re.compile(
 # means; demoted rather than excluded, so they can still fill a thin gallery.
 TITLE_ARCHIVAL = re.compile(
     r"\b(dpla|postcard|stereo(graph|scopic)?|lantern slide|glass negative|"
-    r"18\d\d|19[0-5]\d|lithographie|photochrom)\b", re.I)
+    r"1[5-8]\d\d|19[0-4]\d|lithographie|photochrom|etching)\b", re.I)
 STOPWORDS = {
     "the", "of", "and", "in", "at", "on", "a", "saint", "st", "holy", "church",
     "monastery", "convent", "chapel", "museum", "great", "new", "old", "and",

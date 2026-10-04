@@ -11,9 +11,9 @@
   {{- $summary := .Params.summary -}}
   {{- if not $summary }}{{ with .Params.relics }}{{ $summary = delimit . "; " }}{{ end }}{{ end -}}
   {{- $thumb := "" -}}
-  {{- $photos := partial "photos-for.html" . -}}
+  {{- $photos := partial "photo-lead.html" . -}}
   {{- with $photos -}}
-    {{- $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName (index . 0).file -}}
+    {{- $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName .file -}}
     {{- with resources.Get $path -}}
       {{- /* Portrait, because the popup shows it as a left-hand column. */ -}}
       {{- $thumb = (.Fill "260x330 webp q78 Center").RelPermalink -}}

@@ -1,5 +1,6 @@
 ---
 title: "Zoodochos Pigi at Balıklı (the Life-Giving Spring)"
+commons: "Church of St. Mary of the Source (Istanbul)"
 native: "Ζωοδόχος Πηγή — Balıklı Ayazma"
 summary: "The original Life-Giving Spring, with its fish, and the patriarchal cemetery beside it."
 place: "Balıklı, outside the Theodosian walls near the Silivri Gate"

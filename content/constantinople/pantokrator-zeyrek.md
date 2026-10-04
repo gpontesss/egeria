@@ -1,5 +1,6 @@
 ---
 title: "Monastery of Christ Pantokrator"
+commons: "Zeyrek Mosque"
 native: "Μονή Παντοκράτορος — Zeyrek Camii"
 summary: "The Komnenian imperial monastery and burial church, and its famous hospital typikon."
 place: "Zeyrek, above the Golden Horn"

@@ -1,5 +1,6 @@
 ---
 title: "Sotira Lykodimou (Russian Church of the Holy Trinity)"
+commons: "Holy Trinity church (Athens)"
 native: "Σωτείρα Λυκοδήμου / Αγία Τριάδα"
 summary: "The largest surviving medieval building in Athens — an eleventh-century domed octagon, now the Russian parish."
 place: "Filellinon Street, just south of Syntagma"

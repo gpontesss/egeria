@@ -487,14 +487,24 @@ body.menu-open {
   }
 }
 
-@media (min-width: 34rem) and (max-width: 59.99rem) {
-  /* Enough room to set the portrait beside the first paragraphs rather than
-     above them, without a second grid: a float does it and lets the text
-     close up underneath. */
+/* Below 60rem the portrait goes ABOVE the text, not beside it. It was
+   floated to the right, which put it at the BOTTOM of the intro -- a float
+   only wraps text that comes after it in the flow, and the portrait is last
+   in the DOM so there was nothing left to wrap. The result was a stranded
+   picture with a column of blank space next to it.
+
+   `order` moves it visually without moving it in the markup, so the prose
+   still comes first in the document. */
+@media (max-width: 59.99rem) {
+  .home-intro {
+    display: flex;
+    flex-direction: column;
+  }
+
   .portrait {
-    float: inline-end;
-    max-width: 12rem;
-    margin-inline-start: 1.5rem;
+    order: -1;
+    max-width: min(16rem, 60%);
+    margin: 0 0 1.5rem;
   }
 }
 
@@ -513,6 +523,13 @@ body.menu-open {
   width: 100%;
   border: 1px solid var(--border);
   background: var(--border-soft);
+  /* Leaflet gives its panes z-index 400-700 and its controls 1000, in the
+     ROOT stacking context -- so a map scrolling under the sticky header drew
+     straight over it. position+z-index here makes .map its own stacking
+     context, which confines every one of those numbers inside the map and
+     lets the header's own z-index win again. Do not remove. */
+  position: relative;
+  z-index: 0;
 }
 
 /* The overview and region maps break out of the text measure: a map of two
@@ -832,6 +849,28 @@ body.menu-open {
   padding-inline-start: 1rem;
   border-inline-start: 1px solid var(--border-soft);
   font-style: italic;
+}
+
+/* The hero runs the full width of the article and is the first thing on the
+   page. Taller in proportion on a phone, where a 2:1 strip is too thin to
+   read as a picture of anywhere. */
+.entry-hero {
+  margin: 0 0 1.2rem;
+  line-height: 0;
+}
+
+.entry-hero img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 40rem) {
+  .entry-hero img {
+    aspect-ratio: 3 / 2;
+  }
 }
 
 .entry-native {

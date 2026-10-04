@@ -1,0 +1,13 @@
+{{- /* Markdown links written with a leading "/" are root-absolute and would
+       skip the /egeria/ path this project is published under. Rewriting them
+       through relURL here means content can keep writing "/visiting/" and
+       still work on a project Pages site.
+
+       The leading slash MUST be stripped first: relURL is a no-op on input
+       that already starts with "/", so piping "/visiting/" straight into it
+       silently returns "/visiting/" and the bug survives. */ -}}
+{{- $u := .Destination -}}
+{{- if and (strings.HasPrefix $u "/") (not (strings.HasPrefix $u "//")) -}}
+  {{- $u = (strings.TrimPrefix "/" $u) | relURL -}}
+{{- end -}}
+<a href="{{ $u | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if strings.HasPrefix $u "http" }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>

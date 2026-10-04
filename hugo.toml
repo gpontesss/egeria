@@ -1,4 +1,7 @@
-baseURL = "https://example.org/"
+# A GitHub Pages *project* site, so the path segment matters: every internal
+# link has to be built with relURL/.RelPermalink so it carries /egeria/.
+# Nothing may hardcode a leading "/" path.
+baseURL = "https://gpontesss.github.io/egeria/"
 locale = "en-gb"
 title = "Egeria"
 
