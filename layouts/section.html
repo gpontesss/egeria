@@ -1,0 +1,23 @@
+{{ define "main" }}
+  <div class="listing">
+    <h1 class="page-title">{{ .Title }}</h1>
+    {{ with .Content }}<div class="lead">{{ . }}</div>{{ end }}
+
+    {{ $located := where .RegularPages "Params.coords" "!=" nil }}
+    {{ with $located }}
+      {{ partial "map.html" (dict "page" $ "variant" "overview" "region" $.Title "regions" (slice $.Title) "class" "map-region") }}
+    {{ end }}
+
+    {{/* Entries are ordered by weight so the places a first-time visitor
+         would give up last sit at the top of a region rather than wherever
+         the alphabet puts them; pages without a weight fall to the end,
+         alphabetically. */}}
+    {{ $weighted := where .RegularPages "Params.weight" "!=" nil }}
+    {{ $rest := where .RegularPages "Params.weight" nil }}
+    {{ partial "site-list.html" (dict "pages" ($weighted.ByWeight) "multi" false) }}
+    {{ with $rest }}
+      <h2>Also in the area</h2>
+      {{ partial "site-list.html" (dict "pages" $rest.ByTitle "multi" true) }}
+    {{ end }}
+  </div>
+{{ end }}

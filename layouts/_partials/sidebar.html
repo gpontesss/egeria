@@ -1,0 +1,43 @@
+{{/* The left menu: every region as a disclosure, every place inside it with a
+     one-line summary of what is there to see. Built from the content tree, so
+     a new region folder or a new entry appears here with no registration.
+     Regions are ordered by the `weight` in their own _index.md. */}}
+<nav id="sidebar" class="sidebar" aria-label="Places">
+  <ol class="sidebar-regions">
+    {{ range (where .Site.Sections "Params.region" true).ByWeight }}
+      {{ $region := . }}
+      {{ $isCurrent := or ($.IsDescendant $region) (eq $ $region) }}
+      <li>
+        {{/* The region containing the current page opens by default; nav.js
+             then remembers whatever the reader opens or closes. */}}
+        <details class="sidebar-region" data-region="{{ .File.ContentBaseName | default .Section }}"{{ if $isCurrent }} open{{ end }}>
+          <summary>
+            <span class="sidebar-region-name">{{ .Title }}</span>
+            <span class="sidebar-count">{{ len .RegularPages }}</span>
+          </summary>
+          {{ $weighted := where $region.RegularPages "Params.weight" "!=" nil }}
+          {{ $rest := where $region.RegularPages "Params.weight" nil }}
+          <ul class="sidebar-sites">
+            <li><a class="sidebar-region-link{{ if eq $ $region }} current{{ end }}" href="{{ $region.RelPermalink }}">All of {{ $region.Title }}</a></li>
+            {{ range union ($weighted.ByWeight) ($rest.ByTitle) }}
+              <li>
+                <a href="{{ .RelPermalink }}"{{ if eq $ . }} class="current" aria-current="page"{{ end }}>
+                  {{ .Title }}
+                  {{ $s := .Params.summary }}
+                  {{ if not $s }}{{ with .Params.relics }}{{ $s = delimit . "; " }}{{ end }}{{ end }}
+                  {{ if not $s }}{{ with .Params.kinds }}{{ $s = index . 0 }}{{ end }}{{ end }}
+                  {{ with $s }}<span class="sidebar-summary">{{ . }}</span>{{ end }}
+                </a>
+              </li>
+            {{ end }}
+          </ul>
+        </details>
+      </li>
+    {{ end }}
+  </ol>
+  <p class="sidebar-extra">
+    <a href="{{ "saints/" | relURL }}">Saints index</a><br>
+    <a href="{{ "kinds/" | relURL }}">By kind of place</a><br>
+    <a href="{{ "visiting/" | relURL }}">Visiting</a>
+  </p>
+</nav>

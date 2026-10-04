@@ -1,0 +1,13 @@
+{{ define "main" }}
+  <div class="listing">
+    <h1 class="page-title">{{ .Title }}</h1>
+    {{ with .Content }}<div class="lead">{{ . }}</div>{{ end }}
+    <ul class="site-list site-list-multi">
+      {{ range .Pages.ByTitle }}
+        {{/* .Data.Term is the name as written in the entry's front matter;
+             .Title would come back title-cased and mangled. */}}
+        <li><a href="{{ .RelPermalink }}">{{ .Data.Term }}<span class="site-qualifier">{{ len .Pages }} place{{ if ne (len .Pages) 1 }}s{{ end }}</span></a></li>
+      {{ end }}
+    </ul>
+  </div>
+{{ end }}

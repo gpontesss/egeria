@@ -1,0 +1,70 @@
+baseURL = "https://example.org/"
+locale = "en-gb"
+title = "Egeria"
+
+# Matches the sibling Materia Medica project's out/ convention rather than
+# Hugo's default public/, so both repos are gitignored the same way.
+publishDir = "out/site"
+
+# Clean URLs: /aegina/agios-nektarios/ rather than .../agios-nektarios.html
+uglyURLs = false
+
+# Hugo title-cases a term page's .Title, which mangles names that carry a
+# regnal numeral or a hyphen ("Gregory v of Constantinople", "Trophy-Bearer").
+# The taxonomy templates print .Data.Term instead, and this keeps anything
+# else Hugo titles from being rewritten too.
+titleCaseStyle = "none"
+
+# A reference site, not a blog.
+disableKinds = ["rss"]
+
+[params]
+  subtitle = "A gazetteer of Orthodox holy places — what is there to venerate, what happened there, and how to get in"
+  # Honest about what the picture is: no likeness of Egeria exists, and this
+  # is a Fayum-type funerary portrait of an unrelated woman. Provenance and
+  # the licence of this particular reproduction still need confirming before
+  # the site is published -- see log.md.
+  portraitCaption = "A Romano-Egyptian funerary portrait of the Fayum type. No likeness of Egeria survives; this is a woman of the eastern Roman world she travelled through, painted a little before her time."
+
+  note = "Opening hours, ferry timetables, which reliquaries are currently displayed and the status of converted churches all change faster than any list can track. Confirm locally before relying on an entry."
+  # Esri's Light Gray Canvas: keyless, and grey by design rather than a
+  # colour basemap desaturated by a filter, which suits a black-and-white
+  # site. Labels come as a separate overlay, so the base can be dimmed
+  # without dimming the place names. Two providers were tried first and
+  # rejected: Carto's grey basemaps now stamp "API KEY REQUIRED" across every
+  # tile, and openstreetmap.org returns 503 to browser embeds often enough to
+  # be unusable. Swapping provider is these three lines plus tilesMaxZoom.
+  tiles = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+  tilesLabels = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+  tilesMaxZoom = 16
+  tileAttribution = "Tiles © <a href=\"https://www.esri.com/\">Esri</a> — Esri, DeLorme, NAVTEQ"
+
+[markup.goldmark.renderer]
+  # Needed for the occasional raw <abbr>/<span lang="el"> in entry prose.
+  unsafe = true
+
+[markup.goldmark.extensions]
+  typographer = true
+
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 3
+
+# `saints` answers the question the whole site exists for -- "whose relics
+# can I venerate, and where?" -- so it earns a term page. `kinds` groups by
+# the sort of place (monastery, cave, holy spring, museum...).
+[taxonomies]
+  saint = "saints"
+  kind = "kinds"
+
+# The home page also emits /sites.json, which is the single source the
+# overview map reads. Generating it from the content means the map can never
+# drift out of step with the entries.
+[outputs]
+  home = ["html", "sitesjson"]
+
+[outputFormats.sitesjson]
+  mediaType = "application/json"
+  baseName = "sites"
+  isPlainText = true
+  notAlternative = true

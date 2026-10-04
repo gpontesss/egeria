@@ -1,0 +1,34 @@
+{{- /* Every entry that carries coordinates, as flat records for the overview
+       map. Built from the content, so adding a place with a `coords` field
+       puts it on the map with no further registration. */ -}}
+{{- $out := slice -}}
+{{- range where .Site.RegularPages "Params.coords" "!=" nil -}}
+  {{- $page := . -}}
+  {{- $region := "" -}}
+  {{- with .Parent }}{{ $region = .Title }}{{ end -}}
+  {{- $kind := "" -}}
+  {{- with .Params.kinds }}{{ $kind = index . 0 }}{{ end -}}
+  {{- $summary := .Params.summary -}}
+  {{- if not $summary }}{{ with .Params.relics }}{{ $summary = delimit . "; " }}{{ end }}{{ end -}}
+  {{- $thumb := "" -}}
+  {{- $photos := partial "photos-for.html" . -}}
+  {{- with $photos -}}
+    {{- $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName (index . 0).file -}}
+    {{- with resources.Get $path -}}
+      {{- /* Portrait, because the popup shows it as a left-hand column. */ -}}
+      {{- $thumb = (.Fill "260x330 webp q78 Center").RelPermalink -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $out = $out | append (dict
+      "title" .Title
+      "thumb" $thumb
+      "url" .RelPermalink
+      "region" $region
+      "lat" (index .Params.coords 0)
+      "lon" (index .Params.coords 1)
+      "kind" $kind
+      "summary" ($summary | default "")
+      "status" (.Params.status | default "")
+    ) -}}
+{{- end -}}
+{{- dict "sites" $out | jsonify (dict "indent" " ") -}}

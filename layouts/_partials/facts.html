@@ -1,0 +1,33 @@
+{{/* The fact block under an entry title. Every row is optional: a row is
+     emitted only if its front-matter field is set, so a bare stub entry
+     shows a short block rather than a grid full of blanks. */}}
+{{ $p := .Params }}
+<dl class="facts">
+  {{ with $p.kinds }}
+    <dt>Kind</dt><dd>{{ delimit . ", " }}</dd>
+  {{ end }}
+  {{ with $p.place }}
+    <dt>Where</dt><dd>{{ . }}</dd>
+  {{ end }}
+  {{ with $p.relics }}
+    <dt>To venerate</dt><dd>{{ delimit . "; " }}</dd>
+  {{ end }}
+  {{ with $p.feast }}
+    <dt>Feast</dt><dd>{{ . }}</dd>
+  {{ end }}
+  {{ with $p.jurisdiction }}
+    <dt>Jurisdiction</dt><dd>{{ . }}</dd>
+  {{ end }}
+  {{ with $p.status }}
+    <dt>Status</dt><dd>{{ . }}</dd>
+  {{ end }}
+  {{ with $p.access }}
+    <dt>Access</dt><dd>{{ . }}</dd>
+  {{ end }}
+  {{ with $p.coords }}
+    {{/* A plain OSM link rather than an embedded map: no third-party script,
+         and it opens in whatever map app the phone already has. */}}
+    <dt>Map</dt>
+    <dd><a href="https://www.openstreetmap.org/?mlat={{ index . 0 }}&amp;mlon={{ index . 1 }}#map=17/{{ index . 0 }}/{{ index . 1 }}">{{ index . 0 }}, {{ index . 1 }}</a></dd>
+  {{ end }}
+</dl>

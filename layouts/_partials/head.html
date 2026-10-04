@@ -1,0 +1,45 @@
+{{ $p := .page }}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if $p.IsHome }}{{ $p.Site.Title }} — Orthodox holy places{{ else }}{{ $p.Title }} — {{ $p.Site.Title }}{{ end }}</title>
+  {{ with $p.Description | default $p.Params.summary | default $p.Site.Params.subtitle }}
+  <meta name="description" content="{{ . }}">
+  {{ end }}
+
+  {{/* Favicons, from the same portrait as the frontispiece and the header
+       mark -- one source image, resized by Hugo. */}}
+  {{ with resources.Get "images/egeria.png" }}
+    {{ $i32 := .Resize "32x32 png" }}
+    {{ $i180 := .Resize "180x180 png" }}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $i32.RelPermalink }}">
+    <link rel="apple-touch-icon" href="{{ $i180.RelPermalink }}">
+  {{ end }}
+
+  {{/* EB Garamond, the typeface of the sibling Materia Medica book, with the
+       Greek subsets -- entry prose carries Greek names and the odd polytonic
+       quotation. */}}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400;1,700&display=swap&subset=latin,latin-ext,greek,greek-ext">
+
+  {{/* Leaflet FIRST, so style.css's overrides of its links, controls and
+       popups win on source order rather than needing inflated selectors. */}}
+  {{ if .needsMap }}
+    {{ with resources.Get "vendor/leaflet/leaflet.css" }}
+      {{ $css := . | minify | fingerprint }}
+      <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+    {{ end }}
+  {{ end }}
+
+  {{ with resources.Get "css/style.css" }}
+    {{ $css := . | minify | fingerprint }}
+    <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  {{ end }}
+
+  {{/* Inlined, not linked: the stored theme has to be applied before first
+       paint or the reader sees a flash of the other one. */}}
+  {{ with resources.Get "js/theme.js" }}
+    <script>{{ (. | minify).Content | safeJS }}</script>
+  {{ end }}
+</head>

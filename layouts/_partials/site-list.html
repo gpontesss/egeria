@@ -1,0 +1,19 @@
+{{/* A listing of entries: a thumbnail of the place, its name, and a muted
+     one-line summary of what is there. The thumbnail renders nothing when the
+     entry has no photographs yet, and the row falls back to text. */}}
+<ul class="site-list{{ if .multi }} site-list-multi{{ end }}">
+  {{ range .pages }}
+    <li>
+      <a href="{{ .RelPermalink }}">
+        {{ partial "photo-thumb.html" (dict "page" . "width" 96 "class" "site-thumb") }}
+        <span class="site-list-text">
+          {{ .Title }}
+          {{ $s := .Params.summary }}
+          {{ if not $s }}{{ with .Params.relics }}{{ $s = delimit . "; " }}{{ end }}{{ end }}
+          {{ if not $s }}{{ with .Params.kinds }}{{ $s = index . 0 }}{{ end }}{{ end }}
+          {{ with $s }}<span class="site-qualifier">{{ . }}</span>{{ end }}
+        </span>
+      </a>
+    </li>
+  {{ end }}
+</ul>

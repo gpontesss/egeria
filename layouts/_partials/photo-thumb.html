@@ -1,0 +1,16 @@
+{{/* A square thumbnail of a page's first photograph, for listings and map
+     popups. Renders nothing at all when the page has no photographs, so
+     every caller degrades to the text-only layout it had before.
+
+     dict keys: page, width (px), class, lazy */}}
+{{ $photos := partial "photos-for.html" .page }}
+{{ with $photos }}
+  {{ $first := index . 0 }}
+  {{ $w := $.width | default 96 }}
+  {{ $path := printf "photos/%s/%s/%s" $.page.Section $.page.File.ContentBaseName $first.file }}
+  {{ with resources.Get $path }}
+    {{ $t := .Fill (printf "%dx%d webp q78 Center" $w $w) }}
+    <img class="{{ $.class }}" src="{{ $t.RelPermalink }}" width="{{ $w }}" height="{{ $w }}"
+         alt="" loading="{{ cond ($.lazy | default true) "lazy" "eager" }}" decoding="async">
+  {{ end }}
+{{ end }}

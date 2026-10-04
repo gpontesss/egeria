@@ -1,0 +1,38 @@
+{{ $needsMap := partial "needs-map.html" . }}
+<!doctype html>
+<html lang="en">
+{{ partial "head.html" (dict "page" . "needsMap" $needsMap) }}
+<body>
+  {{ partial "header.html" . }}
+  <div class="shell">
+    {{ partial "sidebar.html" . }}
+    <main class="site-main" id="content">
+      {{ block "main" . }}{{ end }}
+      {{ partial "footer.html" . }}
+    </main>
+  </div>
+  <div class="sidebar-backdrop" hidden></div>
+  {{ with resources.Get "js/nav.js" }}
+    {{ $js := . | minify | fingerprint }}
+    <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+  {{ end }}
+  {{ if gt (len (partial "photos-for.html" .)) 0 }}
+    {{ with resources.Get "js/gallery.js" }}
+      {{ $js := . | minify | fingerprint }}
+      <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+    {{ end }}
+  {{ end }}
+  {{ if $needsMap }}
+    {{/* Leaflet's JS and the map glue load at the end of the body; only its
+         stylesheet needs to be early (see needs-map.html). */}}
+    {{ with resources.Get "vendor/leaflet/leaflet.js" }}
+      {{ $js := . | fingerprint }}
+      <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+    {{ end }}
+    {{ with resources.Get "js/map.js" }}
+      {{ $js := . | minify | fingerprint }}
+      <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+    {{ end }}
+  {{ end }}
+</body>
+</html>

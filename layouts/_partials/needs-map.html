@@ -1,0 +1,16 @@
+{{/* Whether this page will render a map. Computed up front, in baseof, so
+     that Leaflet's stylesheet can be put in <head> BEFORE style.css: Leaflet
+     styles its own links, controls and popups with single-class selectors,
+     and if its stylesheet loaded last it would win every specificity tie and
+     the site's overrides would silently do nothing. Loading it first makes
+     the overrides ordinary cascade, not a specificity arms race.
+
+     Kept in step with the map partial's own call sites: entry pages with
+     coords, the home page, and any section with located pages. */}}
+{{ $needs := false }}
+{{ if .Params.coords }}{{ $needs = true }}{{ end }}
+{{ if .IsHome }}{{ $needs = true }}{{ end }}
+{{ if eq .Kind "section" }}
+  {{ if gt (len (where .RegularPages "Params.coords" "!=" nil)) 0 }}{{ $needs = true }}{{ end }}
+{{ end }}
+{{ return $needs }}

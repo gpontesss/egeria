@@ -1,0 +1,42 @@
+{{ define "main" }}
+  {{/* .Fragments.Headings nests, so its top-level length is 1 on a page of
+       sibling h2s; .Fragments.Identifiers is the flat list and is what to
+       count. A one-heading entry gets no contents box. */}}
+  {{ $hasToc := gt (len .Fragments.Identifiers) 1 }}
+
+  <article class="entry">
+    <h1>{{ .Title }}</h1>
+    {{ with .Params.native }}<p class="entry-native">{{ . }}</p>{{ end }}
+    {{ with .Params.summary }}<p class="entry-summary">{{ . }}</p>{{ end }}
+
+    {{ partial "facts.html" . }}
+
+    {{ with .Params.coords }}
+      {{ partial "map.html" (dict "page" $ "variant" "single" "lat" (index . 0) "lon" (index . 1) "title" $.Title "class" "map-single") }}
+    {{ end }}
+
+    {{ if eq .Params.verified false }}
+      <p class="unverified">Not verified on the ground or against a printed source. Treat the details above — opening hours, what is actually displayed for veneration, jurisdiction — as a starting point to confirm locally.</p>
+    {{ end }}
+
+    {{ if $hasToc }}
+      <nav class="entry-toc" aria-label="Contents">
+        <p class="toc-heading">Contents</p>
+        {{ .TableOfContents }}
+      </nav>
+    {{ end }}
+
+    {{ .Content }}
+
+    {{ partial "gallery.html" . }}
+
+    {{ with .Params.saints }}
+      <p class="entry-footer">Saints: {{ range $i, $s := . }}{{ if $i }}, {{ end }}<a href="{{ (printf "/saints/%s/" (urlize $s)) | relURL }}">{{ $s }}</a>{{ end }}</p>
+    {{ end }}
+
+    <nav class="pager entry-footer">
+      {{ with .PrevInSection }}<a href="{{ .RelPermalink }}">← {{ .Title }}</a>{{ else }}<span></span>{{ end }}
+      {{ with .NextInSection }}<a href="{{ .RelPermalink }}">{{ .Title }} →</a>{{ else }}<span></span>{{ end }}
+    </nav>
+  </article>
+{{ end }}

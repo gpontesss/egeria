@@ -1,0 +1,36 @@
+{{/* A map container. map.js picks these up by class and reads everything it
+     needs from the data attributes, so no inline script and no per-page JS.
+
+     dict keys:
+       variant  "overview" (reads /sites.json, all pins, region filter)
+                or "single" (one pin from lat/lon)
+       lat/lon  required for "single"
+       title    popup label for "single"
+       region   restrict an overview to one region's pins
+       regions  slice of region titles, for the overview's filter buttons
+                (rendered only when there is more than one)
+       class    extra class for sizing                                   */}}
+{{ $v := .variant | default "single" }}
+<figure class="map-figure {{ with .class }}{{ . }}{{ end }}">
+  <div class="map"
+       data-map="{{ $v }}"
+       {{ with .lat }}data-lat="{{ . }}"{{ end }}
+       {{ with .lon }}data-lon="{{ . }}"{{ end }}
+       {{ with .title }}data-title="{{ . }}"{{ end }}
+       {{ if eq $v "overview" }}data-src="{{ "sites.json" | relURL }}"{{ end }}
+       {{ with .region }}data-region="{{ . }}"{{ end }}
+       data-tiles="{{ site.Params.tiles }}"
+       {{ with site.Params.tilesLabels }}data-tiles-labels="{{ . }}"{{ end }}
+       data-tiles-max-zoom="{{ site.Params.tilesMaxZoom | default 18 }}"
+       data-attribution="{{ site.Params.tileAttribution }}"
+       role="application"
+       aria-label="{{ if eq $v "overview" }}Map of every place in this gazetteer{{ else }}Map of {{ .title }}{{ end }}">
+  </div>
+  {{ if and (eq $v "overview") (gt (len .regions) 1) }}
+    <div class="map-filter" role="group" aria-label="Zoom the map to a region">
+      <button type="button" data-region="" class="active">All</button>
+      {{ range .regions }}<button type="button" data-region="{{ . }}">{{ . }}</button>{{ end }}
+    </div>
+  {{ end }}
+  <noscript><figcaption class="map-noscript">The map needs JavaScript. Every entry also carries plain coordinates and an OpenStreetMap link in its fact block.</figcaption></noscript>
+</figure>

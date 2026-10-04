@@ -1,0 +1,37 @@
+{{ define "main" }}
+  <div class="listing listing-wide">
+    <h1 class="page-title">{{ .Site.Title }}</h1>
+
+    <div class="home-intro">
+      <div class="lead">{{ .Content }}</div>
+      <figure class="portrait">
+        {{ partial "portrait.html" (dict
+            "width" 320
+            "class" "portrait-img"
+            "loading" "eager"
+            "sizes" "(min-width: 60rem) 18rem, (min-width: 34rem) 14rem, 60vw"
+            "alt" "A painted funerary portrait of a young woman with dark cropped hair, large dark eyes and a green bead necklace, on a pale ground") }}
+        <figcaption>{{ .Site.Params.portraitCaption | safeHTML }}</figcaption>
+      </figure>
+    </div>
+
+    {{ $sections := (where .Site.Sections "Params.region" true).ByWeight }}
+    {{ $regions := slice }}
+    {{ range $sections }}
+      {{ if gt (len (where .RegularPages "Params.coords" "!=" nil)) 0 }}
+        {{ $regions = $regions | append .Title }}
+      {{ end }}
+    {{ end }}
+    {{ partial "map.html" (dict "page" . "variant" "overview" "regions" $regions "class" "map-overview") }}
+
+    {{ range $sections }}
+      <section class="region">
+        <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+        {{ with .Params.blurb }}<p class="region-blurb">{{ . }}</p>{{ end }}
+        {{ $weighted := where .RegularPages "Params.weight" "!=" nil }}
+        {{ $rest := where .RegularPages "Params.weight" nil }}
+        {{ partial "site-list.html" (dict "pages" (union ($weighted.ByWeight) ($rest.ByTitle)) "multi" true) }}
+      </section>
+    {{ end }}
+  </div>
+{{ end }}

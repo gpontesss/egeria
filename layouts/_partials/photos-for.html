@@ -1,0 +1,12 @@
+{{/* The photo records for a page, or an empty slice. Keyed by section and
+     file base name, which is how tools/fetch_photos.py lays out
+     data/photos/<section>/<slug>.yaml -- so an entry gains photographs by
+     being fetched, with nothing to register here. */}}
+{{ $out := slice }}
+{{ with .File }}
+  {{/* hugo.Data, not site.Data: the latter was deprecated in Hugo 0.156 and
+       `make check` (which runs with warnings fatal) fails on it. */}}
+  {{ $set := index (index hugo.Data.photos $.Section | default dict) .ContentBaseName }}
+  {{ with $set }}{{ with .photos }}{{ $out = . }}{{ end }}{{ end }}
+{{ end }}
+{{ return $out }}

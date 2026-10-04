@@ -1,0 +1,1232 @@
+/* Typography is taken from the Materia Medica book (../materia-medica,
+   materia-medica.typ and site/assets/style.css): EB Garamond, justified
+   paragraphs with automatic hyphenation, headings at Typst's own default
+   ratios (1.4em / 1.2em / 1.1em, all bold), and plain black-on-white with
+   no accent colour anywhere. Dark mode is a true monochrome inversion, not
+   a second palette -- which is why jurisdiction and verification status are
+   conveyed in words rather than coloured badges.
+
+   Two numbers were tuned together and must move together: the base size
+   (15pt) and the measure (--max-measure). The measure is deliberately NOT
+   the book's fixed 5in page width -- it adapts to the viewport, because
+   this project is web-first. */
+
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --text-muted: #444444;
+  --border: #000000;
+  --border-soft: #cccccc;
+  --max-measure: min(38rem, 92vw);
+  --backdrop: rgba(0, 0, 0, 0.5);
+
+  /* The header's height is a shared constant: the sidebar hangs from it, and
+     every anchor target clears it. Set once so the three can never drift. */
+  --header-h: 3.5rem;
+  --sidebar-w: 19rem;
+
+  /* The width of a block that breaks out of the text measure -- the maps and
+     the home-page frontispiece. Never narrower than the measure, never wider
+     than the column it sits in. The formula assumes the sidebar is a column,
+     so it is only ever USED inside a >=60rem media query. */
+  --breakout: max(
+    var(--max-measure),
+    min(62rem, calc(100vw - var(--sidebar-w) - 4rem))
+  );
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --text: #ffffff;
+    --text-muted: #bbbbbb;
+    --border: #ffffff;
+    --border-soft: #444444;
+    --backdrop: rgba(0, 0, 0, 0.75);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --text: #ffffff;
+  --text-muted: #bbbbbb;
+  --border: #ffffff;
+  --border-soft: #444444;
+  --backdrop: rgba(0, 0, 0, 0.75);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+/* An explicit choice overrides the system for the UA's own surfaces too --
+   scrollbars, form controls, the canvas behind the page. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+  font-size: 15pt;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--text);
+}
+
+/* ---------- header ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  height: var(--header-h);
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0 1rem;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  /* Fixed height, so --header-h stays true: nothing in here may wrap. */
+  white-space: nowrap;
+}
+
+.site-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 700;
+  font-size: 1.15em;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  margin-inline-end: auto;
+}
+
+/* The portrait, small, beside the wordmark. Square rather than a circle --
+   it is a painted panel, and cropping it to a disc reads as an avatar. */
+.site-mark {
+  display: block;
+  width: 1.65rem;
+  height: 1.65rem;
+  object-fit: cover;
+  border: 1px solid var(--border-soft);
+}
+
+.site-nav {
+  display: flex;
+  gap: 0.9rem;
+  font-size: 0.8em;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.site-nav a {
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  text-decoration: underline;
+}
+
+/* The header is a fixed height and nothing in it may wrap (--header-h has to
+   stay true), so on a phone the index links give way: the menu button, the
+   wordmark with its portrait, and the theme toggle stay, and all three
+   indexes remain one tap away at the foot of the drawer. */
+@media (max-width: 30rem) {
+  .site-nav {
+    display: none;
+  }
+}
+
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.menu-toggle:hover,
+.menu-toggle[aria-expanded="true"] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* The theme toggle shows the theme it will switch TO, which is the icon the
+   reader is looking for. data-resolved is set by theme.js and is the theme
+   currently in force, so the rules below are deliberately inverted. */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+.theme-toggle[data-resolved="dark"] .icon-sun,
+.theme-toggle[data-resolved="light"] .icon-moon {
+  display: block;
+}
+
+/* The browser's own rule for [hidden] and this one have equal specificity, so
+   the button must not be given a display elsewhere without this guard. */
+.theme-toggle[hidden] {
+  display: none;
+}
+
+/* The sticky header sits on top of the page, so without this, jumping to any
+   in-page anchor -- a contents link, a heading link -- lands the target right
+   underneath it and looks like navigation silently failed. Applies to every
+   element with an id, not a hand-picked selector list. */
+[id] {
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+
+/* ---------- shell: left menu + content ---------- */
+
+/* Below 60rem the menu is a drawer over the content; above it, a real column.
+   The content column is a grid track, so the article is centred in whatever
+   space is left over rather than in the viewport. */
+@media (min-width: 60rem) {
+  .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.sidebar {
+  position: fixed;
+  top: var(--header-h);
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  width: min(var(--sidebar-w), 86vw);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg);
+  border-inline-end: 1px solid var(--border);
+  padding: 0.8rem 0 2rem;
+  font-size: 0.8em;
+  /* Off-canvas until opened. transform rather than display, so the scroll
+     position set by nav.js survives opening and closing. */
+  transform: translateX(-101%);
+  transition: transform 0.18s ease-out;
+}
+
+.sidebar.open {
+  transform: none;
+  box-shadow: 0 0 1.5rem rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 60rem) {
+  .sidebar {
+    position: sticky;
+    top: var(--header-h);
+    bottom: auto;
+    height: calc(100vh - var(--header-h));
+    width: auto;
+    transform: none;
+    transition: none;
+    box-shadow: none;
+  }
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--backdrop);
+}
+
+/* [hidden] and this rule have equal specificity, so without :not([hidden])
+   the display below would win by source order and defeat `hidden`. */
+.sidebar-backdrop:not([hidden]) {
+  display: block;
+}
+
+@media (min-width: 60rem) {
+  .sidebar-backdrop {
+    display: none !important;
+  }
+  .menu-toggle {
+    display: none;
+  }
+}
+
+body.menu-open {
+  overflow: hidden;
+}
+
+@media (min-width: 60rem) {
+  body.menu-open {
+    overflow: visible;
+  }
+}
+
+/* ---------- the left menu itself ---------- */
+
+.sidebar-regions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar-region > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem 0.45rem 0.9rem;
+  cursor: pointer;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.sidebar-region > summary:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.sidebar-region-name {
+  margin-inline-end: auto;
+}
+
+.sidebar-count {
+  font-size: 0.8em;
+  font-variant: normal;
+  color: var(--text-muted);
+}
+
+.sidebar-region > summary:hover .sidebar-count {
+  color: inherit;
+}
+
+.sidebar-sites {
+  list-style: none;
+  margin: 0;
+  padding: 0.2rem 0 0.6rem;
+}
+
+.sidebar-sites a {
+  display: block;
+  padding: 0.3rem 1rem 0.35rem 1.4rem;
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.sidebar-sites a:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.sidebar-sites a.current {
+  font-weight: 700;
+}
+
+.sidebar-sites a.current::before {
+  content: "→ ";
+  margin-inline-start: -0.9rem;
+}
+
+.sidebar-region-link {
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: var(--text-muted) !important;
+}
+
+.sidebar-region-link:hover {
+  color: var(--bg) !important;
+}
+
+/* The one-line summary of what is at a place -- the thing that makes the menu
+   usable for choosing rather than only for navigating. Clamped to two lines so
+   a long relic list cannot push the menu into an endless scroll. */
+.sidebar-summary {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 0.88em;
+  color: var(--text-muted);
+}
+
+.sidebar-sites a:hover .sidebar-summary,
+.sidebar-sites a.current .sidebar-summary {
+  color: inherit;
+}
+
+.sidebar-extra {
+  margin: 1.2rem 0 0;
+  padding: 0.8rem 1rem 0;
+  border-top: 1px solid var(--border-soft);
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  line-height: 1.8;
+}
+
+/* ---------- content column ---------- */
+
+.site-main {
+  min-width: 0;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.listing,
+.entry {
+  max-width: var(--max-measure);
+  margin: 0 auto;
+}
+
+/* The home page is the one page whose column is wider than the measure: it
+   carries the frontispiece and the overview map, and if only those broke out
+   while the heading and the region headings stayed at the measure, the page
+   would have two different left edges. Widening the whole column instead
+   keeps one. Prose inside it is still capped at the measure by .lead and
+   .region-blurb -- the column is wider, the reading line is not. */
+@media (min-width: 60rem) {
+  .listing-wide {
+    max-width: var(--breakout);
+  }
+}
+
+.site-footer {
+  max-width: var(--max-measure);
+  margin: 3rem auto 0;
+  padding: 1.5rem 0 2rem;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  border-top: 1px solid var(--border-soft);
+}
+
+.site-footer a {
+  color: inherit;
+}
+
+.measure {
+  max-width: var(--max-measure);
+}
+
+.lead {
+  color: var(--text-muted);
+  margin: 0 0 1.6rem;
+}
+
+/* Frontispiece: the intro text keeps the reading measure and the portrait
+   sits beside it, the pair breaking out of the measure together. Below 60rem
+   the portrait stacks above the text, where it reads as a plate opening the
+   page rather than something squeezed into a margin. */
+.home-intro {
+  margin-bottom: 1rem;
+}
+
+.portrait {
+  margin: 0 0 1.4rem;
+  max-width: 14rem;
+}
+
+.portrait-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+}
+
+.portrait figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.72em;
+  line-height: 1.4;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+@media (min-width: 60rem) {
+  .home-intro {
+    display: grid;
+    grid-template-columns: minmax(0, var(--max-measure)) minmax(0, 1fr);
+    gap: 0 2.5rem;
+    align-items: start;
+  }
+
+  .portrait {
+    max-width: 18rem;
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 34rem) and (max-width: 59.99rem) {
+  /* Enough room to set the portrait beside the first paragraphs rather than
+     above them, without a second grid: a float does it and lets the text
+     close up underneath. */
+  .portrait {
+    float: inline-end;
+    max-width: 12rem;
+    margin-inline-start: 1.5rem;
+  }
+}
+
+.lead p {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* ---------- maps ---------- */
+
+.map-figure {
+  margin: 1.4rem 0 2rem;
+}
+
+.map {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--border-soft);
+}
+
+/* The overview and region maps break out of the text measure: a map of two
+   countries needs the room, and unlike prose it does not get harder to read
+   as it gets wider. The breakout is symmetric negative margins rather than a
+   transform, so nothing inside the map gets a new containing block. It is
+   never narrower than the measure, and never wider than the column it sits
+   in. Confined to >=60rem, where .listing is exactly --max-measure wide. */
+/* .map-overview sits inside .listing-wide and is already the column's full
+   width. .map-region sits on a section page, whose column is the measure, so
+   it still has to break out with symmetric negative margins -- not a
+   transform, which would give everything inside the map a new containing
+   block. */
+@media (min-width: 60rem) {
+  .map-region {
+    width: var(--breakout);
+    max-width: none;
+    margin-inline: calc((var(--max-measure) - var(--breakout)) / 2);
+  }
+}
+
+.map-overview .map {
+  height: clamp(20rem, 58vh, 34rem);
+}
+
+.map-region .map {
+  height: clamp(16rem, 40vh, 24rem);
+}
+
+.map-single .map {
+  height: 15rem;
+}
+
+/* The basemap is a grey canvas already, so there is nothing to desaturate in
+   light mode. In dark mode the tile pane is inverted -- the standard trick
+   for turning a light basemap into a dark one, and the reason the filter is
+   on the tile pane alone and never on .leaflet-container: markers, popups
+   and controls must keep their own colours. grayscale() is kept in the
+   inversion because inverting a near-grey image can tint it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .map .leaflet-tile-pane {
+    filter: grayscale(1) invert(1) brightness(0.92) contrast(0.95);
+  }
+}
+
+:root[data-theme="dark"] .map .leaflet-tile-pane {
+  filter: grayscale(1) invert(1) brightness(0.92) contrast(0.95);
+}
+
+/* Leaflet draws its own controls; these pull them back to the site's
+   black-and-white, square-cornered treatment. */
+/* .map IS the Leaflet container (L.map adds its classes to that same div),
+   so these are compound, not descendant, selectors. */
+.map.leaflet-container {
+  font-family: inherit;
+  background: var(--bg);
+}
+
+.map .leaflet-bar,
+.map .leaflet-bar a {
+  border-radius: 0;
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.map .leaflet-bar a:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.map .leaflet-control-attribution {
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.6rem;
+}
+
+.map .leaflet-control-attribution a {
+  color: var(--text-muted);
+}
+
+.map-popup .leaflet-popup-content-wrapper,
+.map-popup .leaflet-popup-tip {
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: none;
+}
+
+/* The photograph is a column on the left, flush to the popup's edge, with
+   the text beside it. The content box therefore carries no padding of its
+   own -- .pop-body does -- or the image would be inset from the border. */
+.map-popup .leaflet-popup-content {
+  margin: 0;
+  display: flex;
+  align-items: stretch;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.map-popup .pop-body {
+  min-width: 0;                 /* lets long words wrap instead of widening */
+  padding: 0.6rem 0.75rem;
+}
+
+.map-popup .pop-kind {
+  display: block;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.map-popup .pop-summary {
+  display: block;
+  margin-top: 0.3em;
+  color: var(--text-muted);
+}
+
+.map-popup .pop-link {
+  display: block;
+  margin-top: 0.5em;
+  font-weight: 700;
+}
+
+/* Leaflet colours its own links #0078A8, and the browser draws a blue focus
+   ring on the focusable map container and markers. Those are the only colour
+   that would appear anywhere on the site, so both are pulled back to the text
+   colour. The ring is replaced rather than removed -- keyboard users still
+   need to see it -- and is set for :focus as well as :focus-visible, because
+   Chrome rings a clicked SVG path on plain :focus. */
+.map.leaflet-container a {
+  color: var(--text);
+}
+
+.map.leaflet-container:focus,
+.map.leaflet-container:focus-visible,
+.map .leaflet-interactive:focus,
+.map .leaflet-interactive:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+.map .leaflet-popup-close-button {
+  color: var(--text-muted);
+}
+
+/* A marker's hover tooltip and its popup would otherwise both be open at once
+   -- the tooltip sits behind the popup as a stray bordered box. The tooltip
+   pane comes before the popup pane in the DOM, so a sibling combinator cannot
+   reach it; :has() on their common parent can. */
+.map .leaflet-map-pane:has(.leaflet-popup) .leaflet-tooltip-pane {
+  display: none;
+}
+
+.map .leaflet-tooltip {
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.7rem;
+  box-shadow: none;
+}
+
+.map .leaflet-tooltip-top::before {
+  border-top-color: var(--border);
+}
+
+.map-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.map-filter button {
+  font-family: inherit;
+  font-size: 0.72em;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.map-filter button:hover,
+.map-filter button.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.map-failed {
+  display: none;
+}
+
+.map-noscript {
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+/* ---------- index listings ---------- */
+
+.region h2,
+.listing h2 {
+  font-size: 1.1em;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+  margin-top: 2.2rem;
+}
+
+.region h2 a {
+  text-decoration: none;
+}
+
+.region h2 a:hover {
+  text-decoration: underline;
+}
+
+.region-blurb {
+  max-width: var(--max-measure);
+  font-size: 0.9em;
+  color: var(--text-muted);
+  text-align: justify;
+  hyphens: auto;
+  margin: 0.6rem 0 1rem;
+}
+
+.site-list {
+  list-style: none;
+  margin: 0.8rem 0;
+  padding: 0;
+}
+
+.site-list li {
+  margin: 0.5rem 0;
+  break-inside: avoid;
+}
+
+.site-list a {
+  text-decoration: none;
+}
+
+.site-list a:hover {
+  text-decoration: underline;
+}
+
+.site-list-multi {
+  columns: 2 15rem;
+  column-gap: 2rem;
+}
+
+.site-qualifier {
+  display: block;
+  font-size: 0.78em;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.site-list a:hover .site-qualifier {
+  color: var(--text-muted);
+}
+
+/* ---------- entry ---------- */
+
+.entry h1,
+.page-title {
+  font-size: 1.4em;
+  font-weight: 700;
+  margin-bottom: 0.1em;
+}
+
+/* Listing pages used to borrow .entry for their heading, which also carried
+   .entry's own max-width and auto margins -- harmless while every column was
+   the measure, but on the wider home page it indented the heading away from
+   everything under it. .page-title is the size and weight alone. */
+.page-title {
+  margin-top: 0;
+}
+
+.entry h2 {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-top: 1.8em;
+  margin-bottom: 0.5em;
+}
+
+.entry h3 {
+  font-size: 1.1em;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.4em;
+}
+
+.entry p,
+.entry ul,
+.entry ol,
+.entry blockquote {
+  max-width: var(--max-measure);
+}
+
+.entry p {
+  text-align: justify;
+  hyphens: auto;
+  margin: 0.85em 0;
+}
+
+.entry blockquote {
+  margin: 1.2em 0;
+  padding-inline-start: 1rem;
+  border-inline-start: 1px solid var(--border-soft);
+  font-style: italic;
+}
+
+.entry-native {
+  font-size: 0.95em;
+  color: var(--text-muted);
+  margin: 0 0 0.3em;
+}
+
+.entry-summary {
+  margin: 0.4em 0 0;
+  font-size: 0.95em;
+}
+
+/* The fact block under an entry title: kind, place, relics, jurisdiction,
+   feast, access. A definition list rather than a table so it reflows to one
+   column on a phone without a horizontal scrollbar. */
+.facts {
+  margin: 1.2em 0 1.4em;
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85em;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.3rem 1rem;
+}
+
+.facts dt {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+/* An unverified entry says so in plain text, in the flow, rather than in a
+   coloured warning box -- same reason the rest of the site has no accent
+   colour. */
+.unverified {
+  margin: 1.5em 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px dashed var(--border-soft);
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.entry-footer {
+  margin-top: 2.5rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.entry-footer a {
+  text-decoration: none;
+}
+
+.entry-footer a:hover {
+  text-decoration: underline;
+}
+
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* ---------- entry contents ---------- */
+
+/* Inline by default. At very wide viewports it becomes a floating side nav on
+   the RIGHT of the article -- the left is taken by the main menu now. `left`
+   is computed from the centre of the content column (the viewport minus the
+   sidebar) and --max-measure, never from a shared layout track: an earlier
+   version of the Materia Medica site shared a grid track between the contents
+   and the article and visibly squeezed the article at medium widths. Do not
+   reintroduce a layout where the two compete for width. */
+.entry-toc {
+  margin: 1.4rem 0 2rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border-soft);
+  font-size: 0.85em;
+}
+
+@media (min-width: 88rem) {
+  .entry-toc {
+    position: fixed;
+    top: calc(var(--header-h) + 1rem);
+    left: calc(
+      var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2 + var(--max-measure) / 2 + 2rem
+    );
+    width: 13rem;
+    max-height: calc(100vh - var(--header-h) - 3rem);
+    overflow-y: auto;
+    margin: 0;
+    border-color: var(--border);
+  }
+}
+
+.entry-toc .toc-heading {
+  margin: 0 0 0.4rem;
+  font-size: 0.8em;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.entry-toc ul,
+.entry-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.entry-toc li {
+  margin: 0.22rem 0;
+}
+
+.entry-toc ul ul {
+  padding-inline-start: 0.9rem;
+  font-size: 0.92em;
+}
+
+.entry-toc a {
+  text-decoration: none;
+}
+
+.entry-toc a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- responsive base size ---------- */
+
+@media (max-width: 30rem) {
+  body {
+    font-size: 14pt;
+  }
+  .site-list-multi {
+    columns: 1;
+  }
+  .facts {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .facts dd {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* ---------- photographs ---------- */
+
+/* Thumbnails in listings. The row becomes a two-column grid only when there
+   is a picture to put in the first column, so an entry without photographs
+   keeps exactly the text layout it had before rather than leaving a gap. */
+.site-list a {
+  display: block;
+}
+
+.site-list a:has(.site-thumb) {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+}
+
+.site-thumb {
+  display: block;
+  width: 3.4rem;
+  height: 3.4rem;
+  object-fit: cover;
+  border: 1px solid var(--border-soft);
+}
+
+.site-list a:hover .site-thumb {
+  border-color: var(--text);
+}
+
+.gallery-wrap {
+  margin-top: 2.5rem;
+}
+
+.gallery-heading {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin-bottom: 0.6em;
+}
+
+.gallery {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.6rem;
+}
+
+.gallery-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--border-soft);
+  background: none;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
+.gallery-item:hover,
+.gallery-item:focus-visible {
+  border-color: var(--text);
+  outline: none;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.credits {
+  margin-top: 1rem;
+  font-size: 0.78em;
+  color: var(--text-muted);
+}
+
+.credits summary {
+  cursor: pointer;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.credits ol {
+  margin: 0.6rem 0;
+  padding-inline-start: 1.4rem;
+}
+
+.credits li {
+  margin: 0.35rem 0;
+}
+
+.credits a {
+  color: inherit;
+}
+
+.credit-found {
+  opacity: 0.75;
+}
+
+/* ---------- lightbox ---------- */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--backdrop);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+/* [hidden] and this rule have equal specificity, so without :not([hidden])
+   the display below would win by source order and defeat `hidden`. */
+.lightbox:not([hidden]) {
+  display: flex;
+}
+
+body.lightbox-open {
+  overflow: hidden;
+}
+
+.lightbox-figure {
+  margin: 0;
+  max-width: min(72rem, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.lightbox-figure img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 9rem);
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+.lightbox-figure figcaption {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.78em;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-soft);
+}
+
+.lightbox-caption {
+  display: block;
+}
+
+.lightbox-credit {
+  display: block;
+  margin-top: 0.2em;
+  opacity: 0.85;
+}
+
+.lightbox-credit a,
+.lightbox-figure a {
+  color: inherit;
+}
+
+.lightbox button {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  width: 2.4rem;
+  height: 2.4rem;
+  cursor: pointer;
+}
+
+.lightbox button:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+@media (max-width: 34rem) {
+  .lightbox-prev,
+  .lightbox-next {
+    position: absolute;
+    bottom: 1rem;
+  }
+  .lightbox-prev { left: 1rem; }
+  .lightbox-next { right: 1rem; }
+  .lightbox-figure img { max-height: calc(100vh - 12rem); }
+}
+
+/* ---------- map popup thumbnail ---------- */
+
+.map-popup .pop-thumb {
+  display: block;
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
+  /* Stretches to whatever height the text beside it ends up being, and crops
+     to fill rather than distorting. */
+  align-self: stretch;
+  height: auto;
+  object-fit: cover;
+  margin: 0;
+  border-inline-end: 1px solid var(--border);
+}
+
+@media (max-width: 26rem) {
+  .map-popup .pop-thumb {
+    flex-basis: 5.5rem;
+    width: 5.5rem;
+  }
+}
+
+/* Permanent pin labels. No box and no border -- forty of those would read as
+   clutter on a map this dense. Just the name in the text colour, lifted off
+   the tiles by a halo in the background colour, which works in both themes
+   because both are defined in terms of --bg and --text. */
+.map .leaflet-tooltip.map-label {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 1px 0 0;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+  white-space: nowrap;
+  text-shadow:
+    0 0 2px var(--bg), 0 0 2px var(--bg), 0 0 3px var(--bg),
+    1px 1px 0 var(--bg), -1px 1px 0 var(--bg),
+    1px -1px 0 var(--bg), -1px -1px 0 var(--bg);
+  /* The label must never swallow a click meant for the pin beneath it. */
+  pointer-events: none;
+}
+
+.map .leaflet-tooltip.map-label::before {
+  display: none;            /* no callout arrow on a permanent label */
+}
