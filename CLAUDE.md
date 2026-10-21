@@ -69,6 +69,8 @@ assets/
   vendor/leaflet/                ← Leaflet 1.9.4, vendored not CDN-loaded
 data/photos/<section>/<slug>.yaml ← author, licence, source per photograph
 tools/fetch_photos.py            ← fetches and audits them
+tools/textures.py                ← generates the papyrus and torn-edge
+                                   data URIs pasted into style.css
 archetypes/default.md            ← the entry template `make new` uses
 ```
 
@@ -173,17 +175,53 @@ These matter more than anything in the templates.
 
 ## Styling
 
-Typography is **inherited from the compiled Materia Medica PDF** and should
-not drift from it. The full rationale is in `log.md`; the rules:
+The site is **a sheet of papyrus**: warm sand tones, iron-gall ink rather
+than black, a woven paper texture, and torn edges where one region of the
+page ends and the next begins. It is a gazetteer of pilgrimage places in
+the eastern Mediterranean and the desert, and the surface says so. The full
+rationale, and what this replaced, is in `log.md`; the rules:
 
-- **EB Garamond only**, Google Fonts, with the Greek subsets.
-- Headings **1.4em / 1.2em / 1.1em**, all bold, sized in em.
+- **EB Garamond for reading, Cormorant Garamond for display** — headings,
+  the wordmark and every small-caps label. Google Fonts, both with the
+  Greek subsets, one request for the pair. Cormorant falls back to EB
+  Garamond rather than to a system serif, so a missing polytonic glyph
+  stays in the same family.
+- Headings **1.5em / 1.26em / 1.14em at weight 600**, sized in em. Larger
+  and lighter than the book's 1.4/1.2/1.1 bold because Cormorant has a
+  smaller x-height and a denser bold.
 - Justified paragraphs with `hyphens: auto`.
 - Base **15pt**, 14pt under 30rem; `--max-measure: min(38rem, 92vw)`.
   **These two were tuned as a pair — move them together.**
-- **No accent colour anywhere.** Dark mode is a monochrome inversion.
-  Jurisdiction and verification status are conveyed in words, never in
-  coloured badges — which is also the honest way to do it.
+- **One warm hue family, and no accent colour.** The palette runs light to
+  dark within a single hue; nothing in it carries meaning. Jurisdiction and
+  verification status are conveyed in words, never in coloured badges —
+  which is also the honest way to do it. Dark mode is the same sheet by
+  lamplight: sand ink on dark earth, not an inversion.
+- **Hover is a wash, not an inversion.** A row in the menu takes `--wash`
+  over the paper; a pressed button or a selected chip takes `--fill` /
+  `--fill-text`. The old black-on-white flip read as a hole punched in the
+  sheet.
+- **The paper is generated, not an image.** `--paper` is one SVG data URI of
+  three fractal-noise layers (fibres across, fibres down, fine grain) that
+  tiles on anything opaque — `html` and the header. It comes from
+  **`tools/textures.py`**: run it and paste, never hand-edit a data URI. The
+  large blotches and the vignette are a separate **fixed** overlay on
+  `body::before`, because a repeating stain reads as wallpaper.
+- **It is ONE sheet, torn rather than ruled.** The header and the left menu
+  are regions of the page, not panels on it. Where one ends the sheet is
+  torn: `--torn-head` across the header's foot, `--torn-edge` down the
+  menu's inner edge, both `border-image` strips from the same generator.
+- **A torn strip is made of the same paper as the page** — the same `--bg`
+  under the same turbulence at the same strength — with only a faint shadow
+  and contour to say where the tear is. **Any flat fill or change of tone
+  there reads as a join in the paper**, which is the one thing this must
+  never look like: a first version filled the strip a shade deeper and it
+  looked like a band of different stock laid over woven paper. See `log.md`.
+- **Above 60rem the menu has no background at all.** It is a column on the
+  page there rather than a drawer over it, so it needs no surface — and with
+  no surface there is no second copy of the paper tile to fall out of phase
+  with the page's as it sticks and the page scrolls. Below 60rem it is
+  opaque, because there it does slide over the content.
 - The floating side TOC's `left` is computed from the viewport centre and
   `--max-measure`, never from a shared layout track. An earlier
   shared-grid version in Materia Medica visibly squeezed the article at
@@ -192,11 +230,14 @@ not drift from it. The full rationale is in `log.md`; the rules:
 - `--header-h` is a shared constant: the header's fixed height, what the
   sticky menu hangs from, and what `[id] { scroll-margin-top }` clears for
   every anchor target. Nothing in the header may wrap, or it stops being
-  true.
-- **Maps are monochrome too.** A grey basemap (not a colour one pushed
-  through a filter), `circleMarker`s rather than pin images, and Leaflet's
-  own blue links and focus rings overridden to the text colour. Dark mode
-  inverts the tile pane and **only** the tile pane.
+  true. The torn strip is a 9px `border-bottom` **inside** that height
+  (`box-sizing: border-box`), which is why the constant is 3.9rem and not
+  3.5rem — change the strip and the constant together.
+- **Maps are the same ink.** A grey basemap warmed with `sepia()` — still a
+  grey basemap tinted, never a colour one desaturated — `circleMarker`s
+  rather than pin images, and Leaflet's own blue links and focus rings
+  overridden to the text colour. Dark mode inverts the tile pane and
+  **only** the tile pane, then tints it.
 
 ## Themes
 
@@ -218,9 +259,20 @@ intact:
 follow.
 
 Anything drawn in JS has to be told about a change, because CSS variables
-cannot reach it: `map.js` reads `data-theme` first (media query only as a
-fallback) and restyles its markers on the `egeria:theme` event. If you add
-another JS-drawn surface, listen for that event too.
+cannot reach it — but it can still *read* them. `map.js` takes its marker
+colours from `getComputedStyle(document.documentElement)` for `--bg` and
+`--text`, which resolves through whichever of the three blocks above is in
+force, and restyles on the `egeria:theme` event. It therefore carries no
+second copy of the theme logic and cannot drift from the palette.
+`theme.js` sets `data-theme` *before* it announces, so that read already
+sees the new theme. If you add another JS-drawn surface, do the same and
+listen for that event.
+
+The one place a colour genuinely has to be duplicated is inside an SVG data
+URI, which cannot see a custom property. The paper tile escapes this — its
+noise is grey and `--bg` shows through, so only its strength is per theme —
+but the torn strips carry a fill and a contour, so they exist once per
+theme, and `tools/textures.py` holds that palette too.
 
 ## The portrait
 
@@ -282,6 +334,24 @@ Files land in `assets/photos/<section>/<slug>/`, metadata in
 `data/photos/<section>/<slug>.yaml`. Both are committed; Hugo generates every
 derivative at build time, so the site is self-contained and CI needs no
 network.
+
+### The carousel
+
+`photo-carousel.html` + `carousel.js`: a transform-driven flex rail, **not** a
+CSS scroll-snap scroller. Scroll-snap was tried and abandoned — with
+`scroll-snap-type: x mandatory` the browser re-snaps every scripted scroll
+back to its starting slide, so the controls updated the counter while the
+picture stayed put.
+
+- **No smooth programmatic scrolling anywhere in this project.** It has
+  silently no-opped three times now: Leaflet, the left menu, and here.
+- `sync()`-style functions that run from a scroll handler must never scroll
+  anything themselves. An earlier version called `scrollIntoView()` on the
+  selected thumbnail and locked the renderer.
+- Each slide is a `.gallery-item` carrying the lightbox's data attributes, so
+  `gallery.js` picks them up with no extra wiring.
+- Credits: the carousel shows the current slide's, `photo-credits.html` keeps
+  the full list. Both are required by the licences.
 
 ### The lead photograph is not the first one
 
@@ -391,6 +461,20 @@ openstreetmap.org (503s to browser embeds) were both tried and rejected.
 
 ## Gotchas
 
+- **A `border-image` edge needs `background-clip: padding-box` on the same
+  element**, or the element's own background fills the notches in the torn
+  strip and squares the edge off again. It also needs a non-`none`
+  `border-style`, which is why the header and the menu declare
+  `solid transparent` borders they never show.
+- **A colour inside a data URI is percent-encoded exactly once.** `#` must
+  become `%23`, but passing an already-encoded `%23` through the encoder
+  again yields `%2523`, which is not a colour, and SVG silently falls back
+  to black fill. `tools/textures.py` takes plain `#rrggbb` for this reason.
+- **`stitchTiles` only gives a seamless `feTurbulence` tile when it has
+  nothing to round.** The papyrus tile is 256px and every `baseFrequency` in
+  it is an exact multiple of 1/256. At 300px with `0.014` the seam was a
+  hard line every 300px, in both themes. **Do not change the tile size and
+  the frequencies independently.**
 - **`.Fragments.Headings` nests**, so its top-level length is 1 on a page
   whose headings are all sibling `h2`s. Count `.Fragments.Identifiers` —
   the flat list — when deciding whether an entry gets a sidebar TOC.

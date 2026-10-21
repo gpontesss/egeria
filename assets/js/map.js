@@ -13,26 +13,30 @@
 
   if (typeof L === "undefined") return;
 
-  /* The theme can be the system's or the reader's explicit choice, so read
-     the attribute theme.js sets first and fall back to the media query --
-     never the media query alone, or a toggled page gets the wrong markers.
+  /* Markers are an ink dot ringed in the paper colour, in both themes: the
+     ring is what keeps a pin legible against a tile of the same value.
+
+     The two colours are READ FROM THE STYLESHEET rather than restated here.
+     CSS variables cannot reach anything drawn in JS, but computed style can
+     reach them, and :root resolves --bg/--text through whichever of the
+     three palette blocks is in force -- an explicit data-theme or the media
+     query -- so this needs no second copy of that logic and cannot drift
+     from the palette. theme.js sets data-theme BEFORE it announces, so the
+     read below already sees the new theme.
+
      Every marker is kept so they can be restyled when the theme changes. */
   var markers = [];
 
-  function isDark() {
-    var chosen = document.documentElement.getAttribute("data-theme");
-    if (chosen === "dark") return true;
-    if (chosen === "light") return false;
-    return !!(
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
-  }
-
   function styles() {
-    return isDark()
-      ? { color: "#000000", fillColor: "#ffffff" }
-      : { color: "#ffffff", fillColor: "#000000" };
+    var css = window.getComputedStyle(document.documentElement);
+    function token(name, fallback) {
+      var v = css.getPropertyValue(name).trim();
+      return v || fallback;
+    }
+    return {
+      color: token("--bg", "#f2e6d0"),
+      fillColor: token("--text", "#3b2e21")
+    };
   }
 
   document.addEventListener("egeria:theme", function () {

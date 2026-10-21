@@ -525,3 +525,191 @@ Added `make preview` for the remaining case — checking the actual built
 output locally — which rebuilds against a root baseURL first, because the
 production build hardcodes `/egeria/` into every link and would otherwise
 404 on every page when served from localhost.
+
+## 2026-10-04 — Carousel: the scroll-snap stage did not survive contact
+
+The entry hero became a carousel — a stage with arrows, a counter, a
+per-slide credit, and a thumbnail track below to preview, navigate and
+select.
+
+It was first built as a **CSS scroll-snap scroller**, which is the prettier
+idea: the browser does the swiping, the momentum and the snapping, the
+scroll position *is* the state, and it degrades to a scrollable row of
+photographs without any JavaScript. It does not work when the carousel also
+has to be driven programmatically. With `scroll-snap-type: x mandatory`, a
+scripted scroll gets re-snapped back to the slide it started on, so the
+arrows and thumbnails updated the counter while the picture never moved.
+`scroll-behavior: smooth` made it worse, and `scrollTo({behavior:"smooth"})`
+silently did nothing at all — the same trap already recorded here for
+Leaflet and for the left menu. **That is three times. Do not use smooth
+programmatic scrolling in this project.**
+
+Replaced with a flex rail moved by `transform: translateX(-n * 100%)` and a
+plain index variable. No browser scrolling behaviour to fight, so it does
+what it is told. Swipe is implemented by hand from pointer events, and only
+claims the gesture once it is clearly horizontal, so a vertical flick still
+scrolls the page.
+
+Two other things cost real time and are worth recording:
+
+- **An earlier `sync()` called `scrollIntoView()` on the selected thumbnail,
+  and `sync()` runs from the scroll handler.** That is a feedback loop, and
+  it locked the renderer solid. The track is now nudged by assigning its own
+  `scrollLeft`, only when the thumbnail is actually out of view.
+- **The browser served a cached page for several rounds of testing**, which
+  made working fixes look broken and sent the diagnosis down a false trail
+  more than once. A `?cb=` query string on the URL settles it.
+
+The old grid gallery is gone; `photo-credits.html` keeps the full licence
+list, which CC BY and CC BY-SA require, and the carousel shows the current
+slide's credit as you move through it.
+
+## 2026-10-04 — The frontispiece fills the column on a phone
+
+`width: 100%` below 60rem, capped at 30rem so a square portrait does not
+become an absurdly tall block on a tablet, where the column is wide but the
+desktop grid has not kicked in yet.
+
+## 2026-10-21 — The sheet of papyrus
+
+The site was black ink on white, inherited wholesale from the Materia
+Medica PDF. That was right while Egeria was a sibling of the book. It is a
+gazetteer of pilgrimage places in the eastern Mediterranean and the desert,
+and the brief now is for the surface to say so: desert pastels, a papyrus
+ground with stains, type that belongs on an old map, and a torn edge where
+the left menu meets the page.
+
+**Decision: a warm single-hue palette, a generated paper texture, and a
+display face beside EB Garamond.** Specifically:
+
+- **One hue family, light to dark.** Papyrus `#f2e6d0`, iron-gall ink
+  `#3b2e21`, sandstone borders. Dark mode is no longer an inversion — it is
+  the same sheet by lamplight, sand ink on dark earth. **The rule that no
+  colour carries meaning survives intact**: jurisdiction and verification
+  status are still words, never badges, and there is still no accent.
+- **EB Garamond stays for reading**, which keeps the Materia Medica lineage
+  where it matters, and **Cormorant Garamond** takes headings, the wordmark
+  and every small-caps label. It is drier and more engraved — map lettering
+  rather than paragraph lettering. Its x-height is smaller and its bold
+  denser, so headings went up to 1.5/1.26/1.14 and down to weight 600.
+- **Hovers became a wash rather than an inversion.** `background: var(--text)`
+  on a menu row read as a hole punched in the sheet once the sheet was warm.
+  Buttons and selected chips keep a solid fill, now `--fill`.
+- **The basemap is tinted with `sepia()`.** A neutral grey map on a sand
+  page looked like a screenshot dropped onto it. This is still a grey
+  basemap tinted — not the colour basemap pushed through a filter that this
+  project rejected when it chose Esri Light Gray.
+- **`map.js` now reads `--bg` and `--text` out of computed style** instead
+  of carrying hard-coded `#000`/`#fff` and its own copy of the
+  light/dark decision. The three-block CSS theme shape resolves them, so
+  the markers cannot drift from the palette.
+
+### The texture, and three things that cost time
+
+The paper is generated in CSS, not a bitmap: `tools/textures.py` emits the
+data URIs and the stylesheet carries them. A JPEG of papyrus would have been
+easier to produce and much worse — a megabyte of asset, a visible tile, and
+a second thing to keep in step with the two themes.
+
+- **A crosshatch of `repeating-linear-gradient`s is graph paper, not
+  papyrus.** The first version had fibres at a 9px and an 11px period and
+  read as a perfectly regular grid. Replaced with `feTurbulence`: a
+  turbulence streaked horizontally, one streaked vertically, and a fine
+  isotropic grain over them. That reads as woven fibre because it is
+  irregular at every scale.
+- **`stitchTiles="stitch"` does not make a seamless tile on its own.** It
+  rounds `baseFrequency` to something that fits the tile, and at 300px with
+  `0.014` the rounding left a hard seam every 300px in both themes. Fixed by
+  making the tile 256px and every frequency an exact multiple of 1/256.
+  Recorded in CLAUDE.md: those numbers move together or not at all.
+- **The torn edges were `border-image`, not pseudo-elements.** A border
+  image is painted on the border box, so it does not scroll with the menu's
+  contents — an absolutely positioned strip inside a scrolling column would
+  have. They need `background-clip: padding-box` on the same element, or the
+  element's own background fills the notches and the edge is square again.
+
+The first tear was an even zigzag at a constant 10px step, which looks like
+pinking shears. Real paper tears at an irregular step as well as an
+irregular depth, so the point list has both, and two fainter lines inside
+the contour give the sheet thickness. The left menu also became a shade
+deeper than the page (`--bg-sunk`), so the tear reads as two sheets rather
+than as a wavy line drawn on one.
+
+**Rejected:** a bitmap papyrus background (weight, tiling, two themes);
+`mask-image` on the sidebar for the tear (it masks the scrolling content
+too); a parchment *accent* colour for links and headings (it would have
+broken the rule that no colour carries meaning, which is the one thing
+worth protecting here).
+
+## 2026-10-21 — Why the first torn edges did not blend
+
+*(Superseded in part by the next entry: the diagnosis here is right, the
+conclusion — removing the tears — was not.)*
+
+The header and the left menu were given torn `border-image` edges, and they
+did not blend. The reason is worth keeping, because it is the general rule
+and not a detail of that implementation.
+
+A torn strip is a flat shape: the fill is a solid colour and the contour is
+a drawn line. The page it sits against is **textured**. So however good the
+tear is in isolation, it reads as a flat band with a line on it laid over
+woven paper — a join. Making the menu a shade deeper (`--bg-sunk`) to sell
+the two-sheets idea made it worse, because now there was a tonal step as
+well. The fix is not a better tear.
+
+**Decision: the page is one sheet, and nothing is drawn across it.** The
+header and the menu are regions of the page rather than panels on it.
+
+- No rules, no tonal steps, no torn strips. `--bg-sunk`, `--torn-edge`,
+  `--torn-head` and `--torn-w` are gone, and `--header-h` went back to
+  3.5rem now that nothing sits inside it.
+- **Above 60rem the menu has no background at all.** It is a column on the
+  page there, not a drawer over it, so it needs no surface of its own — and
+  with no surface there is no second copy of the paper tile to fall out of
+  phase with the page's. Below 60rem it keeps an opaque background, because
+  there it slides over the content.
+- The one division left is `.site-header::after`: a 0.75rem gradient, the
+  shadow the sticky header casts on what scrolls under it. A gradient and
+  not a line, for the same reason as everything above.
+
+The sheet is also the reason the texture had to be subtle in the first
+place. Two surfaces tiling the same noise out of phase would show a seam
+wherever they met; the way to not have that problem is to not have two
+surfaces.
+
+`tools/textures.py` lost `torn()` and its point list with this, and is now
+just the paper. One consequence worth noting: the paper tile needs **no
+colour of its own** — the noise is grey and `--bg` shows through — so unlike
+the torn strips it does not have to be generated once per theme, only at two
+strengths.
+
+## 2026-10-21 — The tear is made of the same paper
+
+Removing the torn edges was the wrong answer to the right diagnosis. The
+brief always wanted a ragged edge; what was broken was that the strip was a
+flat band of a different tone laid over a textured page, and the fix for
+that is to make the strip out of the page.
+
+**Decision: the torn strips carry the sheet.** `torn()` now fills the strip
+with the same `--bg` and clips the same three turbulence layers over it, at
+the same per-theme strength as `--paper`, so tone and fibre run straight
+across the tear. What marks the edge is only a wide, nearly transparent
+shadow, a fine fibrous line inside it, and a contour at 0.4 opacity rather
+than 0.8. `--bg-sunk` is gone for good: both sides of a tear are the same
+paper, because they are the same sheet.
+
+Two things from the removal were worth keeping and were kept:
+
+- **Above 60rem the left menu still has no background of its own.** It is a
+  column on the page there, not a drawer over it. With no surface there is
+  no second copy of the paper tile to fall out of phase with the page's as
+  the menu sticks and the page scrolls — the tile inside the 9px strip is
+  the only out-of-phase paper left, and 9px of this noise is invisible.
+  Below 60rem it goes opaque again, because there it does slide over
+  content.
+- **No gradient under the header.** The torn strip carries its own shadow,
+  and a straight gradient under a ragged edge contradicts it.
+
+The general rule, which is now in CLAUDE.md: a hard edge or a change of tone
+between two surfaces reads as a join in the paper. A tear is not a join —
+but only if it is made of the same stock.

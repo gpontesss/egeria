@@ -2,11 +2,10 @@
      that swipes, and a track of thumbnails below it to preview, navigate and
      select.
 
-     The stage is a scroll-snap row, not a JS-positioned slider -- so a touch
-     swipe works natively, the scrollbar is the state, and carousel.js only
-     has to read and nudge it. Each slide is a `.gallery-item` button
-     carrying the same data attributes the lightbox reads, so clicking a
-     slide opens it large with no extra wiring.
+     The stage is a flex rail moved by transform (see carousel.js for why a
+     CSS scroll-snap scroller did not survive contact). Each slide is a
+     `.gallery-item` button carrying the same data attributes the lightbox
+     reads, so clicking a slide opens it large with no extra wiring.
 
      Attribution travels with the picture: the credit under the stage updates
      per slide, and the full list is in photo-credits.html lower down. */}}
@@ -21,7 +20,7 @@
 
   <figure class="carousel" data-carousel>
     <div class="carousel-stage">
-      <ul class="carousel-slides">
+      <ul class="carousel-rail">
         {{ range $i, $p := $ordered }}
           {{ $path := printf "photos/%s/%s/%s" $page.Section $page.File.ContentBaseName $p.file }}
           {{ with resources.Get $path }}
